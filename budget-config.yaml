@@ -1,0 +1,16 @@
+displayName: "Retail Billing Budget"
+budgetFilter:
+  projects:
+    - projects/481465107240
+amount:
+  specifiedAmount:
+    currencyCode: "USD"
+    units: "20"
+thresholdRules:
+  - thresholdPercent: 0.5
+    spendBasis: CURRENT_SPEND
+  - thresholdPercent: 0.9
+    spendBasis: CURRENT_SPEND
+  - thresholdPercent: 1.0
+    spendBasis: CURRENT_SPEND
+
