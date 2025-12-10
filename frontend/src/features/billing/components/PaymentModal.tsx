@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { CreditCard, Wallet, Smartphone, Receipt, X, Loader2 } from 'lucide-react'
+import { CreditCard, Wallet, Smartphone, Loader2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../components/ui/dialog'
 import { Button } from '../../../components/ui/button'
 import { Input } from '../../../components/ui/input'
@@ -26,8 +26,6 @@ const paymentMethods = [
   { value: 'cash', label: 'Cash', icon: Wallet },
   { value: 'card', label: 'Card', icon: CreditCard },
   { value: 'upi', label: 'UPI', icon: Smartphone },
-  { value: 'credit', label: 'Credit', icon: Receipt },
-  { value: 'other', label: 'Other', icon: Receipt },
 ]
 
 export const PaymentModal = ({ open, onClose, total, onComplete, customerName }: PaymentModalProps) => {
@@ -49,8 +47,8 @@ export const PaymentModal = ({ open, onClose, total, onComplete, customerName }:
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // For cash, credit, or other - complete directly
-    if (paymentMethod === 'cash' || paymentMethod === 'credit' || paymentMethod === 'other') {
+    // For cash - complete directly
+    if (paymentMethod === 'cash') {
       onComplete(
         paymentMethod,
         transactionId.trim() || undefined,
@@ -84,17 +82,7 @@ export const PaymentModal = ({ open, onClose, total, onComplete, customerName }:
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-bold">Complete Payment</DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
+          <DialogTitle className="text-xl font-bold">Complete Payment</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -196,8 +184,19 @@ export const PaymentModal = ({ open, onClose, total, onComplete, customerName }:
               <Button
                 type="button"
                 onClick={() => {
-                  setProcessing(true)
-                  handlePaymentGateway(paymentMethod as 'upi' | 'card')
+                  processPayment(
+                    paymentMethod as 'upi' | 'card',
+                    total,
+                    customerName,
+                    (txnId) => {
+                      setTransactionId(txnId)
+                      setProcessing(false)
+                    },
+                    (error) => {
+                      setProcessing(false)
+                      alert(error)
+                    }
+                  )
                 }}
                 className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
               >

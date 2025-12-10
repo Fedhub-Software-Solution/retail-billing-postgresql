@@ -117,9 +117,9 @@ export const BillSummary = ({
           type="number"
           min="0"
           max="100"
-          value={manualDiscount}
+          value={manualDiscount || ''}
           onChange={(e) => onManualDiscountChange(parseFloat(e.target.value) || 0)}
-          placeholder="Manual Discount Amount (%)"
+          placeholder="Manual Discount Value"
           className="w-full"
         />
         <p className="text-xs text-gray-500 mt-0.5">Enter discount percentage (0-100%)</p>
