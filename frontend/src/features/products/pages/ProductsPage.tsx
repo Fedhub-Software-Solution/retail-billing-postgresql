@@ -36,6 +36,8 @@ import { cn } from '../../../lib/utils'
 import LoadingSpinner from '../../../components/common/LoadingSpinner'
 import ErrorState from '../../../components/common/ErrorState'
 import EmptyState from '../../../components/common/EmptyState'
+import { Pagination } from '../../../components/common/Pagination'
+import { showSuccess, showError } from '../../../utils/toast'
 
 const ProductsPage = () => {
   const navigate = useNavigate()
@@ -91,28 +93,35 @@ const ProductsPage = () => {
     try {
       if (formMode === 'create') {
         await createProduct(data as CreateProductRequest).unwrap()
+        showSuccess('Product created successfully')
       } else if (selectedProduct) {
         await updateProduct({
           id: selectedProduct.id,
           data: data as UpdateProductRequest,
         }).unwrap()
+        showSuccess('Product updated successfully')
       }
       setFormOpen(false)
       setSelectedProduct(null)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving product:', error)
+      const errorMessage = error?.data?.message || error?.message || 'Failed to save product'
+      showError(errorMessage)
     }
   }
 
   const handleConfirmDelete = async () => {
-    if (selectedProduct) {
-      try {
-        await deleteProduct(selectedProduct.id).unwrap()
-        setDeleteDialogOpen(false)
-        setSelectedProduct(null)
-      } catch (error) {
-        console.error('Error deleting product:', error)
-      }
+    if (!selectedProduct) return
+
+    try {
+      await deleteProduct(selectedProduct.id).unwrap()
+      showSuccess(`Product "${selectedProduct.name}" deleted successfully`)
+      setDeleteDialogOpen(false)
+      setSelectedProduct(null)
+    } catch (error: any) {
+      console.error('Error deleting product:', error)
+      const errorMessage = error?.data?.message || error?.message || 'Failed to delete product'
+      showError(errorMessage)
     }
   }
 
@@ -294,7 +303,7 @@ const ProductsPage = () => {
                         {/* Price Column */}
                         <td className="px-4 py-3">
                           <span className="text-sm font-medium text-green-600">
-                            INR{product.unitPrice.toFixed(2)}
+                            ₹{product.unitPrice.toFixed(2)}
                           </span>
                         </td>
 
@@ -364,33 +373,14 @@ const ProductsPage = () => {
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600">
-            Showing {(page - 1) * limit + 1} to {Math.min(page * limit, pagination.total)} of{' '}
-            {pagination.total} products
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(page - 1)}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-            <span className="text-sm text-gray-600">
-              Page {page} of {pagination.totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(page + 1)}
-              disabled={page >= pagination.totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        <Pagination
+          page={page}
+          totalPages={pagination.totalPages}
+          total={pagination.total}
+          limit={limit}
+          onPageChange={setPage}
+          itemName="products"
+        />
       )}
 
       {/* Product Form Modal */}

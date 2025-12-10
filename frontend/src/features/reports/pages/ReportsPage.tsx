@@ -34,6 +34,7 @@ import { cn } from '../../../lib/utils'
 import LoadingSpinner from '../../../components/common/LoadingSpinner'
 import ErrorState from '../../../components/common/ErrorState'
 import EmptyState from '../../../components/common/EmptyState'
+import { Pagination } from '../../../components/common/Pagination'
 import {
   exportSalesSummary,
   exportTopProducts,
@@ -47,6 +48,11 @@ const ReportsPage = () => {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [groupBy, setGroupBy] = useState('day')
+  const [salesPage, setSalesPage] = useState(1)
+  const [productsPage, setProductsPage] = useState(1)
+  const [customersPage, setCustomersPage] = useState(1)
+  const [dailyPage, setDailyPage] = useState(1)
+  const [limit] = useState(20)
 
   const { data: salesSummary, isLoading: loadingSummary } = useGetSalesSummaryQuery({
     startDate: startDate || undefined,
@@ -77,7 +83,40 @@ const ReportsPage = () => {
     setStartDate('')
     setEndDate('')
     setGroupBy('day')
+    setSalesPage(1)
+    setProductsPage(1)
+    setCustomersPage(1)
+    setDailyPage(1)
   }
+
+  // Pagination for sales summary
+  const salesSummaryData = salesSummary?.summary || []
+  const salesTotalPages = Math.ceil(salesSummaryData.length / limit)
+  const paginatedSalesSummary = salesSummaryData.slice(
+    (salesPage - 1) * limit,
+    salesPage * limit
+  )
+
+  // Pagination for top products
+  const productsTotalPages = Math.ceil(topProducts.length / limit)
+  const paginatedTopProducts = topProducts.slice(
+    (productsPage - 1) * limit,
+    productsPage * limit
+  )
+
+  // Pagination for top customers
+  const customersTotalPages = Math.ceil(topCustomers.length / limit)
+  const paginatedTopCustomers = topCustomers.slice(
+    (customersPage - 1) * limit,
+    customersPage * limit
+  )
+
+  // Pagination for daily sales
+  const dailyTotalPages = Math.ceil(dailySales.length / limit)
+  const paginatedDailySales = dailySales.slice(
+    (dailyPage - 1) * limit,
+    dailyPage * limit
+  )
 
   const handleExportReport = () => {
     switch (activeTab) {
@@ -311,7 +350,7 @@ const ReportsPage = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {salesSummary.summary.map((item, index) => (
+                        {paginatedSalesSummary.map((item, index) => (
                           <tr key={index} className="hover:bg-gray-50 transition-colors">
                             <td className="px-6 py-4">
                               <p className="text-sm font-medium text-gray-900">{item.period}</p>
@@ -342,6 +381,18 @@ const ReportsPage = () => {
                       </tbody>
                     </table>
                   </div>
+                  {salesTotalPages > 1 && (
+                    <div className="px-6 py-4 border-t border-gray-200">
+                      <Pagination
+                        page={salesPage}
+                        totalPages={salesTotalPages}
+                        total={salesSummaryData.length}
+                        limit={limit}
+                        onPageChange={setSalesPage}
+                        itemName="periods"
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </>
@@ -374,7 +425,7 @@ const ReportsPage = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {topProducts.map((product, index) => (
+                      {paginatedTopProducts.map((product, index) => (
                         <tr key={product.id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4">
                             <div className="w-8 h-8 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center">
@@ -408,6 +459,18 @@ const ReportsPage = () => {
                     </tbody>
                   </table>
                 </div>
+                {productsTotalPages > 1 && (
+                  <div className="px-6 py-4 border-t border-gray-200">
+                    <Pagination
+                      page={productsPage}
+                      totalPages={productsTotalPages}
+                      total={topProducts.length}
+                      limit={limit}
+                      onPageChange={setProductsPage}
+                      itemName="products"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           ) : (
@@ -438,7 +501,7 @@ const ReportsPage = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {topCustomers.map((customer, index) => (
+                      {paginatedTopCustomers.map((customer, index) => (
                         <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4">
                             <div className="w-8 h-8 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center">
@@ -473,6 +536,18 @@ const ReportsPage = () => {
                     </tbody>
                   </table>
                 </div>
+                {customersTotalPages > 1 && (
+                  <div className="px-6 py-4 border-t border-gray-200">
+                    <Pagination
+                      page={customersPage}
+                      totalPages={customersTotalPages}
+                      total={topCustomers.length}
+                      limit={limit}
+                      onPageChange={setCustomersPage}
+                      itemName="customers"
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           ) : (
@@ -654,7 +729,7 @@ const ReportsPage = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {dailySales.map((sale, index) => (
+                        {paginatedDailySales.map((sale, index) => (
                           <tr key={index} className="hover:bg-gray-50 transition-colors">
                             <td className="px-6 py-4">
                               <p className="text-sm font-medium text-gray-900">
@@ -682,11 +757,23 @@ const ReportsPage = () => {
                             </td>
                           </tr>
                         ))}
-                      </tbody>
-                    </table>
+                    </tbody>
+                  </table>
+                </div>
+                {dailyTotalPages > 1 && (
+                  <div className="px-6 py-4 border-t border-gray-200">
+                    <Pagination
+                      page={dailyPage}
+                      totalPages={dailyTotalPages}
+                      total={dailySales.length}
+                      limit={limit}
+                      onPageChange={setDailyPage}
+                      itemName="days"
+                    />
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </CardContent>
+            </Card>
             </>
           ) : (
             <Card className="border border-gray-100">

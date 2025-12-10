@@ -10,6 +10,7 @@ import {
   Tag,
   BarChart3,
   Settings,
+  UserCircle,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
@@ -37,6 +38,7 @@ const allMenuItems: MenuItem[] = [
   { id: 'inventory', label: 'Inventory', icon: <Warehouse className="w-5 h-5" />, path: '/inventory', roles: ['admin', 'manager'] },
   { id: 'discounts', label: 'Discounts', icon: <Tag className="w-5 h-5" />, path: '/discounts', roles: ['admin', 'manager'] },
   { id: 'reports', label: 'Reports', icon: <BarChart3 className="w-5 h-5" />, path: '/reports', roles: ['admin', 'manager'] },
+  { id: 'profile', label: 'Profile', icon: <UserCircle className="w-5 h-5" />, path: '/profile' },
   { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" />, path: '/settings', roles: ['admin'] },
 ]
 
@@ -82,7 +84,7 @@ const Sidebar = ({ onCollapseChange }: SidebarProps) => {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-16 left-0 h-[calc(100vh-4rem)] bg-gradient-to-b from-gray-50 to-white border-r border-gray-200 flex flex-col shadow-lg transition-all duration-300 ease-in-out z-50',
+          'fixed top-16 left-0 bottom-16 bg-gradient-to-b from-gray-50 to-white border-r border-gray-200 flex flex-col shadow-lg transition-all duration-300 ease-in-out z-50',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           'lg:translate-x-0',
           isCollapsed ? 'w-16' : 'w-56'

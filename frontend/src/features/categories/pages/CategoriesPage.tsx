@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Grid3x3, Search } from 'lucide-react'
 import {
   useGetCategoriesQuery,
@@ -25,6 +25,7 @@ import {
 import LoadingSpinner from '../../../components/common/LoadingSpinner'
 import ErrorState from '../../../components/common/ErrorState'
 import EmptyState from '../../../components/common/EmptyState'
+import { Pagination } from '../../../components/common/Pagination'
 
 const CategoriesPage = () => {
   const { data: categories = [], isLoading, error } = useGetCategoriesQuery()
@@ -37,6 +38,8 @@ const CategoriesPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
   const [searchTerm, setSearchTerm] = useState('')
+  const [page, setPage] = useState(1)
+  const [limit] = useState(20)
 
   const handleCreate = () => {
     setFormMode('create')
@@ -94,6 +97,15 @@ const CategoriesPage = () => {
     )
   })
 
+  // Pagination for filtered categories
+  const totalPages = Math.ceil(filteredCategories.length / limit)
+  const paginatedCategories = filteredCategories.slice((page - 1) * limit, page * limit)
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setPage(1)
+  }, [searchTerm])
+
   if (isLoading) {
     return <LoadingSpinner message="Loading categories..." />
   }
@@ -132,7 +144,10 @@ const CategoriesPage = () => {
             <Input
               placeholder="Search categories..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setPage(1)
+              }}
               className="pl-10"
             />
           </div>
@@ -151,11 +166,25 @@ const CategoriesPage = () => {
               onAction={searchTerm ? undefined : handleCreate}
             />
           ) : (
-            <CategoryTree
-              categories={filteredCategories}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+            <>
+              <CategoryTree
+                categories={paginatedCategories}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+              {totalPages > 1 && (
+                <div className="mt-6">
+                  <Pagination
+                    page={page}
+                    totalPages={totalPages}
+                    total={filteredCategories.length}
+                    limit={limit}
+                    onPageChange={setPage}
+                    itemName="categories"
+                  />
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

@@ -6,7 +6,9 @@ export const showToast = (
   severity: 'success' | 'error' | 'warning' | 'info' = 'info',
   duration?: number
 ) => {
-  store.dispatch(addToast({ message, severity, duration }))
+  // Default duration is 3 seconds (3000ms) if not specified
+  const toastDuration = duration ?? 3000
+  store.dispatch(addToast({ message, severity, duration: toastDuration }))
 }
 
 export const showSuccess = (message: string, duration?: number) => {

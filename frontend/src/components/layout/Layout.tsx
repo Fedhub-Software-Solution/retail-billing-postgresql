@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { useState } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
+import Footer from './Footer'
 import ToastContainer from '../common/ToastContainer'
 import { cn } from '../../lib/utils'
 
@@ -19,13 +20,14 @@ const Layout = () => {
             isSidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56' // Collapsed: 64px, Expanded: 224px
           )}
         >
-          <div className="flex-1 overflow-y-auto smart-scroll p-4 sm:p-6 lg:p-8">
+          <div className="flex-1 overflow-y-auto smart-scroll p-4 sm:p-6 lg:p-8 pb-20">
             <div className="max-w-7xl mx-auto w-full">
               <Outlet />
             </div>
           </div>
         </main>
       </div>
+      <Footer />
       <ToastContainer />
     </div>
   )

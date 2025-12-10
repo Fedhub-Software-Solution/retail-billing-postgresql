@@ -61,6 +61,25 @@ export const inventoryApi = baseApi.injectEndpoints({
       invalidatesTags: ['Product'],
       transformResponse: (response: { success: boolean; data: InventoryTransaction }) => response.data,
     }),
+    updateInventoryTransaction: builder.mutation<
+      InventoryTransaction,
+      { id: number; data: CreateInventoryTransactionRequest }
+    >({
+      query: ({ id, data }) => ({
+        url: `/inventory/transactions/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['Product'],
+      transformResponse: (response: { success: boolean; data: InventoryTransaction }) => response.data,
+    }),
+    deleteInventoryTransaction: builder.mutation<void, number>({
+      query: (id) => ({
+        url: `/inventory/transactions/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Product'],
+    }),
   }),
 })
 
@@ -68,5 +87,7 @@ export const {
   useGetInventoryTransactionsQuery,
   useGetLowStockAlertsQuery,
   useCreateInventoryTransactionMutation,
+  useUpdateInventoryTransactionMutation,
+  useDeleteInventoryTransactionMutation,
 } = inventoryApi
 

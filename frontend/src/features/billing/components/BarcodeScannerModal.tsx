@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Scan, Keyboard, Camera, Lightbulb, Package } from 'lucide-react'
+import { Scan, Keyboard, Camera, Lightbulb, Package } from 'lucide-react'
 import { useGetProductsQuery } from '../../../store/api/productApi'
 import { Product } from '../../../store/api/productApi'
 import { Button } from '../../../components/ui/button'
@@ -102,26 +102,16 @@ export const BarcodeScannerModal = ({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Scan className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl font-bold">Barcode Scanner</DialogTitle>
-                <DialogDescription className="text-sm text-gray-500">
-                  Scan or enter product barcode
-                </DialogDescription>
-              </div>
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+              <Scan className="w-5 h-5 text-white" />
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0"
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            <div>
+              <DialogTitle className="text-xl font-bold">Barcode Scanner</DialogTitle>
+              <DialogDescription className="text-sm text-gray-500">
+                Scan or enter product barcode
+              </DialogDescription>
+            </div>
           </div>
         </DialogHeader>
 

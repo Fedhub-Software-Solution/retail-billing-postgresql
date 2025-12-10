@@ -6,6 +6,7 @@ import { RootState } from '../../store/store'
 import { disableStaffMode } from '../../store/slices/staffSlice'
 import { useNavigate } from 'react-router-dom'
 import ToastContainer from '../common/ToastContainer'
+import Footer from './Footer'
 
 const StaffLayout = () => {
   const dispatch = useDispatch()
@@ -47,6 +48,7 @@ const StaffLayout = () => {
           <Outlet />
         </Container>
       </Box>
+      <Footer />
       <ToastContainer />
     </Box>
   )

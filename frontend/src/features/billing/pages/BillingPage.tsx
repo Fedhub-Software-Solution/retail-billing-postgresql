@@ -378,7 +378,11 @@ const BillingPage = () => {
         open={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         total={total}
-        customerName={selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}` : undefined}
+        customerName={
+          selectedCustomer
+            ? [selectedCustomer.firstName, selectedCustomer.lastName].filter(Boolean).join(' ').trim() || undefined
+            : undefined
+        }
         onComplete={handleCompleteSale}
       />
 

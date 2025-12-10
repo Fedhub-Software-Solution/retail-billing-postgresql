@@ -19,8 +19,8 @@ const createDiscountSchema = Joi.object({
   discountValue: Joi.number().positive().required(),
   minPurchaseAmount: Joi.number().min(0).default(0),
   maxDiscountAmount: Joi.number().positive().optional().allow(null),
-  startDate: Joi.date().optional().allow(null),
-  endDate: Joi.date().optional().allow(null),
+  startDate: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).optional().allow(null, ''),
+  endDate: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).optional().allow(null, ''),
   usageLimit: Joi.number().integer().positive().optional().allow(null),
   isActive: Joi.boolean().default(true),
 })
@@ -32,31 +32,50 @@ const updateDiscountSchema = Joi.object({
   discountValue: Joi.number().positive().optional(),
   minPurchaseAmount: Joi.number().min(0).optional(),
   maxDiscountAmount: Joi.number().positive().optional().allow(null),
-  startDate: Joi.date().optional().allow(null),
-  endDate: Joi.date().optional().allow(null),
+  startDate: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).optional().allow(null, ''),
+  endDate: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).optional().allow(null, ''),
   usageLimit: Joi.number().integer().positive().optional().allow(null),
   isActive: Joi.boolean().optional(),
 })
 
 // Helper function to convert database discount to API format
-const mapDiscount = (dbDiscount: DatabaseDiscount): Discount => ({
-  id: dbDiscount.id,
-  code: dbDiscount.code || undefined,
-  name: dbDiscount.name,
-  discountType: dbDiscount.discount_type,
-  discountValue: parseFloat(dbDiscount.discount_value.toString()),
-  minPurchaseAmount: parseFloat(dbDiscount.min_purchase_amount.toString()),
-  maxDiscountAmount: dbDiscount.max_discount_amount
-    ? parseFloat(dbDiscount.max_discount_amount.toString())
-    : undefined,
-  startDate: dbDiscount.start_date || undefined,
-  endDate: dbDiscount.end_date || undefined,
-  usageLimit: dbDiscount.usage_limit || undefined,
-  usedCount: dbDiscount.used_count,
-  isActive: dbDiscount.is_active,
-  createdAt: dbDiscount.created_at,
-  updatedAt: dbDiscount.updated_at,
-})
+const mapDiscount = (dbDiscount: DatabaseDiscount): Discount => {
+  // Helper to format date as YYYY-MM-DD string without timezone conversion
+  const formatDateString = (date: Date | string | null | undefined): string | undefined => {
+    if (!date) return undefined
+    if (typeof date === 'string') {
+      // If already a string, extract date part only
+      return date.split('T')[0]
+    }
+    if (date instanceof Date) {
+      // Format as YYYY-MM-DD without timezone conversion
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+    return undefined
+  }
+
+  return {
+    id: dbDiscount.id,
+    code: dbDiscount.code || undefined,
+    name: dbDiscount.name,
+    discountType: dbDiscount.discount_type,
+    discountValue: parseFloat(dbDiscount.discount_value.toString()),
+    minPurchaseAmount: parseFloat(dbDiscount.min_purchase_amount.toString()),
+    maxDiscountAmount: dbDiscount.max_discount_amount
+      ? parseFloat(dbDiscount.max_discount_amount.toString())
+      : undefined,
+    startDate: formatDateString(dbDiscount.start_date),
+    endDate: formatDateString(dbDiscount.end_date),
+    usageLimit: dbDiscount.usage_limit || undefined,
+    usedCount: dbDiscount.used_count,
+    isActive: dbDiscount.is_active,
+    createdAt: dbDiscount.created_at,
+    updatedAt: dbDiscount.updated_at,
+  }
+}
 
 // Get all discounts
 export const getDiscounts = async (
@@ -155,6 +174,13 @@ export const createDiscount = async (
       }
     }
 
+    // Convert date strings to proper format for PostgreSQL (keep as strings to avoid timezone issues)
+    const formatDateForDB = (dateStr: string | null | undefined): string | null => {
+      if (!dateStr || dateStr.trim() === '') return null
+      // Ensure it's in YYYY-MM-DD format
+      return dateStr.trim()
+    }
+
     // Insert discount
     const result = await pool.query<DatabaseDiscount>(
       `INSERT INTO discounts (
@@ -170,8 +196,8 @@ export const createDiscount = async (
         discountValue,
         minPurchaseAmount,
         maxDiscountAmount || null,
-        startDate || null,
-        endDate || null,
+        formatDateForDB(startDate),
+        formatDateForDB(endDate),
         usageLimit || null,
         isActive,
       ]
@@ -252,6 +278,13 @@ export const updateDiscount = async (
       }
     }
 
+    // Helper function to format date for database
+    const formatDateForDB = (dateStr: string | null | undefined): string | null => {
+      if (!dateStr || dateStr.trim() === '') return null
+      // Ensure it's in YYYY-MM-DD format
+      return dateStr.trim()
+    }
+
     // Build update query dynamically
     const updates: string[] = []
     const values: any[] = []
@@ -283,11 +316,11 @@ export const updateDiscount = async (
     }
     if (startDate !== undefined) {
       updates.push(`start_date = $${paramCount++}`)
-      values.push(startDate || null)
+      values.push(formatDateForDB(startDate))
     }
     if (endDate !== undefined) {
       updates.push(`end_date = $${paramCount++}`)
-      values.push(endDate || null)
+      values.push(formatDateForDB(endDate))
     }
     if (usageLimit !== undefined) {
       updates.push(`usage_limit = $${paramCount++}`)

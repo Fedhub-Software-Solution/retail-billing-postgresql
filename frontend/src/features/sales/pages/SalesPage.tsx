@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, X, Calendar, TrendingUp, Plus, Search, Filter } from 'lucide-react'
+import { Eye, Edit, Trash2, Calendar, TrendingUp, Plus, Search, Filter } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import {
   useGetSalesQuery,
@@ -30,6 +30,7 @@ import { cn } from '../../../lib/utils'
 import LoadingSpinner from '../../../components/common/LoadingSpinner'
 import ErrorState from '../../../components/common/ErrorState'
 import EmptyState from '../../../components/common/EmptyState'
+import { Pagination } from '../../../components/common/Pagination'
 
 const SalesPage = () => {
   const navigate = useNavigate()
@@ -38,7 +39,7 @@ const SalesPage = () => {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('')
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
 
   const queryParams: SaleQueryParams = {
@@ -56,19 +57,26 @@ const SalesPage = () => {
     navigate(`/sales/${sale.id}`)
   }
 
-  const handleCancel = (sale: Sale) => {
-    setSelectedSale(sale)
-    setCancelDialogOpen(true)
+  const handleEdit = (sale: Sale, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    // Navigate to sale detail page where editing can be done
+    navigate(`/sales/${sale.id}?edit=true`)
   }
 
-  const handleConfirmCancel = async () => {
+  const handleDelete = (sale: Sale, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    setSelectedSale(sale)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
     if (selectedSale) {
       try {
         await cancelSale(selectedSale.id).unwrap()
-        setCancelDialogOpen(false)
+        setDeleteDialogOpen(false)
         setSelectedSale(null)
       } catch (error) {
-        console.error('Error cancelling sale:', error)
+        console.error('Error deleting sale:', error)
       }
     }
   }
@@ -327,20 +335,30 @@ const SalesPage = () => {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleView(sale)}
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            title="View Sale"
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          {sale.paymentStatus !== 'paid' &&
-                            sale.paymentStatus !== 'cancelled' && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleCancel(sale)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                            )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => handleEdit(sale, e)}
+                            disabled={sale.paymentStatus === 'paid' || sale.paymentStatus === 'cancelled'}
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={sale.paymentStatus === 'paid' || sale.paymentStatus === 'cancelled' ? 'Cannot edit paid or cancelled sales' : 'Edit Sale'}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => handleDelete(sale, e)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Delete Sale"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -354,51 +372,32 @@ const SalesPage = () => {
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600">
-            Showing {(page - 1) * limit + 1} to {Math.min(page * limit, pagination.total)} of{' '}
-            {pagination.total} sales
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(page - 1)}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-            <span className="text-sm text-gray-600">
-              Page {page} of {pagination.totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(page + 1)}
-              disabled={page >= pagination.totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        <Pagination
+          page={page}
+          totalPages={pagination.totalPages}
+          total={pagination.total}
+          limit={limit}
+          onPageChange={setPage}
+          itemName="sales"
+        />
       )}
 
-      {/* Cancel Confirmation Dialog */}
-      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cancel Sale</DialogTitle>
+            <DialogTitle>Delete Sale</DialogTitle>
             <DialogDescription>
-              Are you sure you want to cancel sale {selectedSale?.invoiceNumber}? This action
-              cannot be undone.
+              Are you sure you want to delete sale {selectedSale?.invoiceNumber}? This action
+              cannot be undone and will restore product stock quantities.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelDialogOpen(false)}>
-              No, Keep Sale
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
             </Button>
-            <Button variant="destructive" onClick={handleConfirmCancel}>
-              Yes, Cancel Sale
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Delete Sale
             </Button>
           </DialogFooter>
         </DialogContent>

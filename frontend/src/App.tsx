@@ -24,6 +24,7 @@ const ReportsPage = lazy(() => import('./features/reports/pages/ReportsPage'))
 const DiscountsPage = lazy(() => import('./features/discounts/pages/DiscountsPage'))
 const SettingsPage = lazy(() => import('./features/settings/pages/SettingsPage'))
 const InventoryPage = lazy(() => import('./features/inventory/pages/InventoryPage'))
+const ProfilePage = lazy(() => import('./features/profile/pages/ProfilePage'))
 
 function App() {
   const dispatch = useDispatch()
@@ -169,6 +170,14 @@ function App() {
           element={
             <Suspense fallback={<LoadingSpinner />}>
               <InventoryPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="profile"
+          element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <ProfilePage />
             </Suspense>
           }
         />

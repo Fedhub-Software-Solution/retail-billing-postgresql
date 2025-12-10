@@ -71,6 +71,17 @@ const DiscountForm = ({ open, onClose, onSubmit, discount, mode }: DiscountFormP
 
   useEffect(() => {
     if (discount && mode === 'edit') {
+      // Helper function to extract date-only string (YYYY-MM-DD) without timezone conversion
+      const extractDateOnly = (dateStr: string | undefined): string => {
+        if (!dateStr) return ''
+        // If it's already in YYYY-MM-DD format, return as is
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          return dateStr
+        }
+        // If it has time component, extract just the date part
+        return dateStr.split('T')[0]
+      }
+
       reset({
         code: discount.code || '',
         name: discount.name,
@@ -78,8 +89,8 @@ const DiscountForm = ({ open, onClose, onSubmit, discount, mode }: DiscountFormP
         discountValue: discount.discountValue,
         minPurchaseAmount: discount.minPurchaseAmount,
         maxDiscountAmount: discount.maxDiscountAmount || undefined,
-        startDate: discount.startDate ? discount.startDate.split('T')[0] : '',
-        endDate: discount.endDate ? discount.endDate.split('T')[0] : '',
+        startDate: extractDateOnly(discount.startDate),
+        endDate: extractDateOnly(discount.endDate),
         usageLimit: discount.usageLimit || undefined,
         isActive: discount.isActive,
       })
@@ -100,10 +111,23 @@ const DiscountForm = ({ open, onClose, onSubmit, discount, mode }: DiscountFormP
   }, [discount, mode, reset, open])
 
   const handleFormSubmit = (data: any) => {
+    // Helper function to safely convert date to string or undefined
+    const formatDate = (date: any): string | undefined => {
+      if (!date) return undefined
+      if (typeof date === 'string') {
+        const trimmed = date.trim()
+        return trimmed !== '' ? trimmed : undefined
+      }
+      if (date instanceof Date) {
+        return date.toISOString().split('T')[0]
+      }
+      return undefined
+    }
+
     onSubmit({
       ...data,
-      startDate: data.startDate || undefined,
-      endDate: data.endDate || undefined,
+      startDate: formatDate(data.startDate),
+      endDate: formatDate(data.endDate),
       usageLimit: data.usageLimit || undefined,
       maxDiscountAmount: data.maxDiscountAmount || undefined,
     })
@@ -285,9 +309,11 @@ const DiscountForm = ({ open, onClose, onSubmit, discount, mode }: DiscountFormP
                 control={control}
                 render={({ field }) => (
                   <Input
-                    {...field}
                     id="startDate"
                     type="date"
+                    value={field.value || ''}
+                    onChange={(e) => field.onChange(e.target.value || '')}
+                    onBlur={field.onBlur}
                     className={cn(errors.startDate && 'border-red-500')}
                   />
                 )}
@@ -305,9 +331,11 @@ const DiscountForm = ({ open, onClose, onSubmit, discount, mode }: DiscountFormP
                 control={control}
                 render={({ field }) => (
                   <Input
-                    {...field}
                     id="endDate"
                     type="date"
+                    value={field.value || ''}
+                    onChange={(e) => field.onChange(e.target.value || '')}
+                    onBlur={field.onBlur}
                     className={cn(errors.endDate && 'border-red-500')}
                   />
                 )}

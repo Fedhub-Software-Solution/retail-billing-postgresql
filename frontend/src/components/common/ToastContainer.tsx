@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from '../../store/store'
@@ -11,6 +12,24 @@ const ToastContainer = () => {
   const handleClose = (id: string) => {
     dispatch(removeToast(id))
   }
+
+  // Auto-dismiss toasts after 3 seconds (or custom duration)
+  useEffect(() => {
+    const timers: NodeJS.Timeout[] = []
+
+    toasts.forEach((toast) => {
+      const duration = toast.duration ?? 3000 // Default 3 seconds
+      const timer = setTimeout(() => {
+        dispatch(removeToast(toast.id))
+      }, duration)
+      timers.push(timer)
+    })
+
+    // Cleanup function to clear all timers
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer))
+    }
+  }, [toasts, dispatch])
 
   const getIcon = (severity: string) => {
     switch (severity) {
@@ -43,12 +62,12 @@ const ToastContainer = () => {
   }
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-md w-full">
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 max-w-md w-full">
       {toasts.map((toast) => (
         <div
           key={toast.id}
           className={cn(
-            'relative flex items-start gap-3 p-4 rounded-lg border shadow-lg animate-in slide-in-from-right-5 fade-in-0',
+            'relative flex items-start gap-3 p-4 rounded-lg border shadow-lg animate-in slide-in-from-top-5 fade-in-0',
             getStyles(toast.severity)
           )}
           role="alert"
@@ -64,15 +83,6 @@ const ToastContainer = () => {
           >
             <X className="w-4 h-4" />
           </button>
-          {/* Auto-dismiss progress bar */}
-          {toast.duration && (
-            <div
-              className="absolute bottom-0 left-0 h-1 bg-current opacity-20 rounded-b-lg animate-shrink"
-              style={{
-                animationDuration: `${toast.duration}ms`,
-              }}
-            />
-          )}
         </div>
       ))}
     </div>

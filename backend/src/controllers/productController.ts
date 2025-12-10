@@ -123,6 +123,9 @@ export const getProducts = async (
       }
     }
 
+    // Always filter by is_active = true to exclude deleted products
+    conditions.push('p.is_active = true')
+    
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
     // Validate sortBy

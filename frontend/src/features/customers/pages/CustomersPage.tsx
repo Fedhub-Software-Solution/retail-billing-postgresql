@@ -36,6 +36,7 @@ import { cn } from '../../../lib/utils'
 import LoadingSpinner from '../../../components/common/LoadingSpinner'
 import ErrorState from '../../../components/common/ErrorState'
 import EmptyState from '../../../components/common/EmptyState'
+import { Pagination } from '../../../components/common/Pagination'
 
 const CustomersPage = () => {
   const navigate = useNavigate()
@@ -383,33 +384,14 @@ const CustomersPage = () => {
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600">
-            Showing {(page - 1) * limit + 1} to {Math.min(page * limit, pagination.total)} of{' '}
-            {pagination.total} customers
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(page - 1)}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-            <span className="text-sm text-gray-600">
-              Page {page} of {pagination.totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(page + 1)}
-              disabled={page >= pagination.totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        <Pagination
+          page={page}
+          totalPages={pagination.totalPages}
+          total={pagination.total}
+          limit={limit}
+          onPageChange={setPage}
+          itemName="customers"
+        />
       )}
 
       {/* Customer Form Modal */}

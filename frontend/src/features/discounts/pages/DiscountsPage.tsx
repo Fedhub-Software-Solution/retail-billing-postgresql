@@ -25,6 +25,7 @@ import { cn } from '../../../lib/utils'
 import LoadingSpinner from '../../../components/common/LoadingSpinner'
 import ErrorState from '../../../components/common/ErrorState'
 import EmptyState from '../../../components/common/EmptyState'
+import { Pagination } from '../../../components/common/Pagination'
 
 const DiscountsPage = () => {
   const { data: discounts = [], isLoading, error } = useGetDiscountsQuery()
@@ -36,6 +37,9 @@ const DiscountsPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedDiscount, setSelectedDiscount] = useState<Discount | null>(null)
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
+  const [activePage, setActivePage] = useState(1)
+  const [inactivePage, setInactivePage] = useState(1)
+  const [limit] = useState(12)
 
   const handleCreate = () => {
     setFormMode('create')
@@ -109,6 +113,20 @@ const DiscountsPage = () => {
   const activeDiscounts = discounts.filter((d) => isDiscountActive(d))
   const inactiveDiscounts = discounts.filter((d) => !isDiscountActive(d))
 
+  // Pagination for active discounts
+  const activeTotalPages = Math.ceil(activeDiscounts.length / limit)
+  const paginatedActiveDiscounts = activeDiscounts.slice(
+    (activePage - 1) * limit,
+    activePage * limit
+  )
+
+  // Pagination for inactive discounts
+  const inactiveTotalPages = Math.ceil(inactiveDiscounts.length / limit)
+  const paginatedInactiveDiscounts = inactiveDiscounts.slice(
+    (inactivePage - 1) * limit,
+    inactivePage * limit
+  )
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -175,7 +193,7 @@ const DiscountsPage = () => {
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Discounts</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {activeDiscounts.map((discount) => (
+            {paginatedActiveDiscounts.map((discount) => (
               <Card
                 key={discount.id}
                 className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-white hover:shadow-lg transition-all duration-300"
@@ -236,9 +254,20 @@ const DiscountsPage = () => {
                           <Calendar className="w-4 h-4 text-gray-400" />
                           <span className="text-xs text-gray-500">
                             {discount.startDate &&
-                              new Date(discount.startDate).toLocaleDateString()}
+                              (() => {
+                                // Parse date string (YYYY-MM-DD) and format without timezone conversion
+                                const dateStr = discount.startDate.split('T')[0]
+                                const [year, month, day] = dateStr.split('-')
+                                return `${parseInt(month)}/${parseInt(day)}/${year}`
+                              })()}
                             {discount.startDate && discount.endDate && ' - '}
-                            {discount.endDate && new Date(discount.endDate).toLocaleDateString()}
+                            {discount.endDate &&
+                              (() => {
+                                // Parse date string (YYYY-MM-DD) and format without timezone conversion
+                                const dateStr = discount.endDate.split('T')[0]
+                                const [year, month, day] = dateStr.split('-')
+                                return `${parseInt(month)}/${parseInt(day)}/${year}`
+                              })()}
                           </span>
                         </div>
                       )}
@@ -256,6 +285,18 @@ const DiscountsPage = () => {
               </Card>
             ))}
           </div>
+          {activeTotalPages > 1 && (
+            <div className="mt-6">
+              <Pagination
+                page={activePage}
+                totalPages={activeTotalPages}
+                total={activeDiscounts.length}
+                limit={limit}
+                onPageChange={setActivePage}
+                itemName="active discounts"
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -264,7 +305,7 @@ const DiscountsPage = () => {
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Inactive Discounts</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {inactiveDiscounts.map((discount) => (
+            {paginatedInactiveDiscounts.map((discount) => (
               <Card
                 key={discount.id}
                 className="border border-gray-200 hover:shadow-lg transition-all duration-300"
@@ -318,6 +359,18 @@ const DiscountsPage = () => {
               </Card>
             ))}
           </div>
+          {inactiveTotalPages > 1 && (
+            <div className="mt-6">
+              <Pagination
+                page={inactivePage}
+                totalPages={inactiveTotalPages}
+                total={inactiveDiscounts.length}
+                limit={limit}
+                onPageChange={setInactivePage}
+                itemName="inactive discounts"
+              />
+            </div>
+          )}
         </div>
       )}
 
